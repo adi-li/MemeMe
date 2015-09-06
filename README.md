@@ -1,5 +1,5 @@
 # MemeMe
-iOS project for UIKit Fundamentals at Udacity
+iOS project for [UIKit Fundamentals](https://www.udacity.com/course/uikit-fundamentals--ud788) at [Udacity](https://www.udacity.com)
 
 Download and run it on Xcode 6 or later.
 
