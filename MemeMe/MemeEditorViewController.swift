@@ -1,5 +1,5 @@
 //
-//  ViewController.swift
+//  MemeEditorViewController.swift
 //  MemeMe
 //
 //  Created by Adi Li on 6/9/15.
@@ -8,7 +8,7 @@
 
 import UIKit
 
-class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavigationControllerDelegate, UITextFieldDelegate {
+class MemeEditorViewController: UIViewController, UIImagePickerControllerDelegate, UINavigationControllerDelegate, UITextFieldDelegate {
 
     // MARK: - Properties
     @IBOutlet weak var imageView: UIImageView!
@@ -184,21 +184,26 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
         return memedImage
     }
     
-    func save() -> Bool {
+    func saveMemeWithImage(memedImage: UIImage) {
         if let image = imageView.image {
             let topText = topTextField.text != nil ? topTextField.text : "TOP"
             let bottomText = bottomTextField.text != nil ? bottomTextField.text : "BOTTOM"
-            meme = Meme(topText: topText, bottomText: bottomText, image: image, memedImage: generateMemedImage())
-            return true
+            meme = Meme(topText: topText, bottomText: bottomText, image: image, memedImage: memedImage)
         }
-        return false
     }
     
     @IBAction func shareMeme(sender: UIBarButtonItem) {
-        if save() {
-            let activityVC = UIActivityViewController(activityItems: [meme!.memedImage], applicationActivities: nil)
-            presentViewController(activityVC, animated: true, completion: nil)
+        let memedImage = generateMemedImage()
+        let activityVC = UIActivityViewController(activityItems: [memedImage], applicationActivities: nil)
+        activityVC.completionWithItemsHandler = { [weak self]
+            (activityType: String!, completed: Bool, items: [AnyObject]!, error: NSError!) in
+            
+            if completed {
+                self?.saveMemeWithImage(memedImage)
+            }
+            
         }
+        presentViewController(activityVC, animated: true, completion: nil)
     }
 
 }
