@@ -29,7 +29,7 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
         super.viewDidLoad()
         
         // Set default text attributes
-        let textAttributes = self.getDefaultTextAttributes()
+        let textAttributes = getDefaultTextAttributes()
         
         topTextField.defaultTextAttributes = textAttributes
         bottomTextField.defaultTextAttributes = textAttributes
@@ -39,12 +39,12 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
         bottomTextField.attributedPlaceholder = NSAttributedString(string: "BOTTOM", attributes: textAttributes)
         
         // Reset image and text
-        self.resetImage(nil, andText: true)
+        resetImage(nil, andText: true)
     }
     
     override func viewWillAppear(animated: Bool) {
         super.viewWillAppear(animated)
-        self.subscribeToKeyboardNotifications()
+        subscribeToKeyboardNotifications()
         
         // Only enable camera button if camera exists
         cameraButton.enabled = UIImagePickerController.isSourceTypeAvailable(.Camera)
@@ -52,7 +52,7 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
     
     override func viewWillDisappear(animated: Bool) {
         super.viewWillDisappear(animated)
-        self.unsubscribeFromKeyboardNotifications()
+        unsubscribeFromKeyboardNotifications()
     }
     
     // MARK: - Reset data
@@ -70,7 +70,7 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
     }
     
     @IBAction func cancelChange(sender: UIBarButtonItem) {
-        self.resetImage(nil, andText: true)
+        resetImage(nil, andText: true)
     }
     
     func getDefaultTextAttributes() -> [NSObject: AnyObject] {
@@ -90,18 +90,17 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
     func importPhotoFromSourceType(sourceType: UIImagePickerControllerSourceType) {
         let imagePickerVC = UIImagePickerController()
         imagePickerVC.sourceType = sourceType
-//        imagePickerVC.allowsEditing = true
         imagePickerVC.delegate = self
         
-        self.presentViewController(imagePickerVC, animated: true, completion: nil)
+        presentViewController(imagePickerVC, animated: true, completion: nil)
     }
     
     @IBAction func takePhoto(sender: UIBarButtonItem) {
-        self.importPhotoFromSourceType(.Camera)
+        importPhotoFromSourceType(.Camera)
     }
     
     @IBAction func pickPhoto(sender: UIBarButtonItem) {
-        self.importPhotoFromSourceType(.PhotoLibrary)
+        importPhotoFromSourceType(.PhotoLibrary)
     }
     
     func imagePickerController(picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [NSObject : AnyObject]) {
@@ -119,7 +118,7 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
         }
         
         // Reset with image
-        self.resetImage(image)
+        resetImage(image)
         
         // Dismiss the picker
         picker.dismissViewControllerAnimated(true, completion: nil)
@@ -153,7 +152,7 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
     func keyboardWillShow(notification: NSNotification) {
         if let textField = currentEditingTextField {
             if textField == bottomTextField {
-                view.frame.origin.y -= self.getKeyboardHeight(notification)
+                view.frame.origin.y = -getKeyboardHeight(notification)
             }
         }
     }
@@ -176,7 +175,7 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
         toolbar.hidden = true
         
         // Snapshot the view as image
-        let memedImage = UIImage.fromView(self.view, afterScreenUpdates: true)
+        let memedImage = UIImage.fromView(view, afterScreenUpdates: true)
         
         // Show navbar and toolbar
         navigationBar.hidden = false
@@ -189,16 +188,16 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
         if let image = imageView.image {
             let topText = topTextField.text != nil ? topTextField.text : "TOP"
             let bottomText = bottomTextField.text != nil ? bottomTextField.text : "BOTTOM"
-            meme = Meme(image: image, memedImage: self.generateMemedImage(), topText: topText, bottomText: bottomText)
+            meme = Meme(topText: topText, bottomText: bottomText, image: image, memedImage: generateMemedImage())
             return true
         }
         return false
     }
     
     @IBAction func shareMeme(sender: UIBarButtonItem) {
-        if self.save() {
+        if save() {
             let activityVC = UIActivityViewController(activityItems: [meme!.memedImage], applicationActivities: nil)
-            self.presentViewController(activityVC, animated: true, completion: nil)
+            presentViewController(activityVC, animated: true, completion: nil)
         }
     }
 
