@@ -22,7 +22,14 @@ class MemeEditorViewController: UIViewController, UIImagePickerControllerDelegat
     @IBOutlet weak var toolbar: UIToolbar!
     
     var currentEditingTextField: UITextField?
-    var meme: Meme?
+    
+    var editingMemeIndex: Int?
+    var editingMeme: Meme? {
+        if let idx = editingMemeIndex {
+            return (UIApplication.sharedApplication().delegate as! AppDelegate).memes[idx]
+        }
+        return nil
+    }
     
     // MARK: - Override UIViewController
     override func viewDidLoad() {
@@ -39,7 +46,13 @@ class MemeEditorViewController: UIViewController, UIImagePickerControllerDelegat
         bottomTextField.attributedPlaceholder = NSAttributedString(string: "BOTTOM", attributes: textAttributes)
         
         // Reset image and text
-        resetImage(nil, andText: true)
+        resetImage(editingMeme?.image, andText: true)
+        
+        // Setup view if editing meme
+        if let editingMeme = editingMeme {
+            topTextField.text = editingMeme.topText
+            bottomTextField.text = editingMeme.bottomText
+        }
     }
     
     override func viewWillAppear(animated: Bool) {
@@ -55,9 +68,12 @@ class MemeEditorViewController: UIViewController, UIImagePickerControllerDelegat
         unsubscribeFromKeyboardNotifications()
     }
     
+    override func prefersStatusBarHidden() -> Bool {
+        return true
+    }
+    
     // MARK: - Reset data
     func resetImage(image: UIImage?, andText resetText: Bool = false) {
-        meme = nil
         imageView.image = image
         
         // Only enable share button if image present
@@ -70,10 +86,10 @@ class MemeEditorViewController: UIViewController, UIImagePickerControllerDelegat
     }
     
     @IBAction func cancelChange(sender: UIBarButtonItem) {
-        resetImage(nil, andText: true)
+        dismissViewControllerAnimated(true, completion: nil)
     }
     
-    func getDefaultTextAttributes() -> [NSObject: AnyObject] {
+    func getDefaultTextAttributes() -> [String: AnyObject] {
         let paragraphStyle = NSParagraphStyle.defaultParagraphStyle().mutableCopy() as! NSMutableParagraphStyle
         paragraphStyle.lineBreakMode = .ByTruncatingTail
         paragraphStyle.alignment = .Center
@@ -103,7 +119,7 @@ class MemeEditorViewController: UIViewController, UIImagePickerControllerDelegat
         importPhotoFromSourceType(.PhotoLibrary)
     }
     
-    func imagePickerController(picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [NSObject : AnyObject]) {
+    func imagePickerController(picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [String : AnyObject]) {
         
         var image: UIImage?
         
@@ -186,9 +202,12 @@ class MemeEditorViewController: UIViewController, UIImagePickerControllerDelegat
     
     func saveMemeWithImage(memedImage: UIImage) {
         if let image = imageView.image {
-            let topText = topTextField.text != nil ? topTextField.text : "TOP"
-            let bottomText = bottomTextField.text != nil ? bottomTextField.text : "BOTTOM"
-            meme = Meme(topText: topText, bottomText: bottomText, image: image, memedImage: memedImage)
+            let topText = topTextField.text == "" ? "TOP" : topTextField.text
+            let bottomText = bottomTextField.text == "" ? "BOTTOM" : bottomTextField.text
+            let meme = Meme(topText: topText!, bottomText: bottomText!, image: image, memedImage: memedImage)
+            
+            let appDelegate = UIApplication.sharedApplication().delegate as! AppDelegate
+            appDelegate.memes.append(meme)
         }
     }
     
@@ -196,15 +215,15 @@ class MemeEditorViewController: UIViewController, UIImagePickerControllerDelegat
         let memedImage = generateMemedImage()
         let activityVC = UIActivityViewController(activityItems: [memedImage], applicationActivities: nil)
         activityVC.completionWithItemsHandler = { [weak self]
-            (activityType: String!, completed: Bool, items: [AnyObject]!, error: NSError!) in
+            (activityType: String?, completed: Bool, items: [AnyObject]?, error: NSError?) in
             
             if completed {
                 self?.saveMemeWithImage(memedImage)
+                self?.dismissViewControllerAnimated(true, completion: nil)
             }
             
         }
         presentViewController(activityVC, animated: true, completion: nil)
     }
-
 }
 
